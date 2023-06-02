@@ -10,8 +10,8 @@ month_name = calendar.month_abbr[month]
 year = datetime.datetime.now().year
 
 # Set up the Google Docs API client
-credentials = service_account.Credentials.from_service_account_file('credentials.json', scopes=['https://www.googleapis.com/auth/documents'])
-service = build('docs', 'v1', credentials=credentials)
+credentials = service_account.Credentials.from_service_account_file('credentials.json', scopes=['https://www.googleapis.com/auth/spreadsheets'])
+service = build('sheets', 'v4', credentials=credentials)
 
 # Create a new table
 dates = []
@@ -24,95 +24,42 @@ for day in range(1, 32):
         pass
     
 # Insert the table into the document
-document_id = '1F13p5uxrfJnTDzITZGfBU5oBLGglMk5v8HGWYr2Ee20'
-rows = [
-    [
-        {
-            'text': '1'
-        },
-        {
-            'text': '2'
-        }
-    ],
-    [
-        {
-            'text': '3'
-        }
-    ]
-]
-columns = [
-    {
-        'text': '1'
-    },
-    {
-        'text': '2'
-    }
-]
+# document_id = '1F13p5uxrfJnTDzITZGfBU5oBLGglMk5v8HGWYr2Ee20' (google document)
+spreadsheet_id = '1LkY4bBjeqJ51bCjs6CQcuBF4nG9Cj_OSOgA7e0etMyk' # google spreadsheet
 
-requests = [
-    {
-        'insertTable': {
-            'rows': rows, #round(len(dates)/7),
-            'columns': columns,
-            'endOfSegmentLocation': {
-                'segmentId': ''
-                # 'index': 0
-            }
-        }
-    },
-    {
-        'insertText': {
-            'location': {
-                'index': 1
-            },
-            'text': f'{month_name}\n'
-        }
-    }
-]
+# Retrieve the existing sheet data
+sheet = service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+sheet_title = sheet['sheets'][0]['properties']['title']
+sheet_range = f'{sheet_title}'  # Adjust the range as needed
 
-service.documents().batchUpdate(
-    documentId=document_id, 
-    body={
-        'requests': requests
-    }
-).execute()
+# Create the date values
+num_days = calendar.monthrange(year, month)[1]
+num_rows = (num_days - 1) // 7 + 1
+start_day = datetime.date(year, month, 1).weekday() + 1 
 
+values = []
+for row in range(num_rows):
+    dates = []
+    for col in range(7):
+        day = row * 7 + col + 1 - start_day + 1
+        if 1 <= day <= num_days:
+            date = datetime.datetime(year, month, day, tzinfo=pytz.UTC)
+            date_str = str(month) + '/' + str(day) + '\n '
+            dates.append(date_str)
+        else:
+            dates.append('')
+    values.append(dates)
 
-requests = [
-    {
-        'insertText': {
-            'location': {
-                'index': 6
-            },
-            'text': '06/01'
-        }
-    }
-]
+# Prepare the update request
+body = {
+    'values': values
+}
+request = service.spreadsheets().values().update(
+    spreadsheetId=spreadsheet_id,
+    range=sheet_range,
+    valueInputOption='RAW',
+    body=body
+)
 
-# days_in_month = calendar.monthrange(year, month)[1]
-# first_day = calendar.weekday(year, month, 1)
-#
-# for day in range(1, days_in_month + 1):
-#     day_of_week = (day - 1 + first_day) % 7
-#     table['rows'].append({
-#         'cells': [
-#             {
-#                 'text': '{:02d}'.format(day)
-#             }
-#         ] * day_of_week
-#     })
-#
-# requests = [{
-#     'insertTable': {
-#         'table': table
-#     }
-# }]
-
-service.documents().batchUpdate(
-    documentId=document_id, 
-    body={
-        'requests': requests
-    }
-).execute()
-
-# print(f'Table for month {month} inserted into document "{document_id}"')
+# Execute the update request
+response = request.execute()
