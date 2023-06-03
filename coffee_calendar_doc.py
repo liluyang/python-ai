@@ -5,8 +5,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 # Set the month for the table
-month = 6
-month_name = calendar.month_abbr[month]
+month = datetime.datetime.now().month
 year = datetime.datetime.now().year
 
 # Set up the Google Docs API client
@@ -52,10 +51,6 @@ for row in range(num_rows):
                 'text': date_str
             }
         }]
-        # if date_str == ' ':
-        #     index += len(date_str) + 2
-        # else:
-        #     print(len(date_str))
         index += len(date_str) + 2
         service.documents().batchUpdate(documentId=document_id, body={'requests': request2}).execute()
     index += 1 # next row 
