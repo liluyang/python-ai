@@ -12,16 +12,6 @@ year = datetime.datetime.now().year
 # Set up the Google Docs API client
 credentials = service_account.Credentials.from_service_account_file('credentials.json', scopes=['https://www.googleapis.com/auth/spreadsheets'])
 service = build('sheets', 'v4', credentials=credentials)
-
-# Create a new table
-dates = []
-for day in range(1, 32):
-    try:
-        date = datetime.datetime(year, month, day, tzinfo=pytz.UTC)
-        dates.append([date.strftime('%m/%d')] + [''] * 6)
-    except ValueError:
-        # Skip days that don't exist in the current month
-        pass
     
 # Insert the table into the document
 # document_id = '1F13p5uxrfJnTDzITZGfBU5oBLGglMk5v8HGWYr2Ee20' (google document)
