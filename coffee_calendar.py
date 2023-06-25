@@ -5,7 +5,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 # Set the month for the table
-month = 6
+month = 7
 month_name = calendar.month_abbr[month]
 year = datetime.datetime.now().year
 
