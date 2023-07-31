@@ -6,7 +6,7 @@ from googleapiclient.discovery import build
 
 # Set the month for the table
 #month = datetime.datetime.now().month
-month = 7
+month = 8
 year = datetime.datetime.now().year
 
 # Set up the Google Docs API client
