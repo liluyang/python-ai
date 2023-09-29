@@ -1,12 +1,15 @@
 import calendar
 import datetime
 import pytz
+import sys
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 # Set the month for the table
-#month = datetime.datetime.now().month
-month = 8
+month = datetime.datetime.now().month
+if len(sys.argv) == 2:
+    month = int(sys.argv[1])
+
 year = datetime.datetime.now().year
 
 # Set up the Google Docs API client
